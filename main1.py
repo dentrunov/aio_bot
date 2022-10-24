@@ -73,9 +73,6 @@ async def filter_messages(message: types.Message):
         await message.answer('Не очень-то и хотелось(', reply_markup=kb.yes_kb)
     elif "расписание" in message.text.lower():
         await message.answer('https://school.mos.ru/')
-        #await message.delete()
-    #elif message.from_user.id == 622603789: #это ID Аресенийтак
-        #await message.answer(message.from_user.first_name)
     if not(message.from_user.id in users.keys()):
         users[message.from_user.id] = [message.from_user.first_name, time.time(), message.chat.id]
         print(users)
