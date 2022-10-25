@@ -20,13 +20,12 @@ greetings = ['Всем привет, меня зовут Женя, я ваша �
 users = dict()
 
 
-with open('russian.txt', encoding='utf-8') as file:
-    russian = file.read().split()
-
-async def on_startup(_):
-    chat_id = channel_id
-    asyncio.create_task(scheduler())
-    await bot.send_message(chat_id, "Привет, я бот")
+with open('verbs.txt') as file:
+    verbs = file.read().split()
+with open('nouns.txt') as file:
+    nouns = file.read().split()
+with open('adjectives.txt') as file:
+    adjectives = file.read().split()
 
 async def on_shutdown(_):
     chat_id = channel_id
@@ -81,29 +80,19 @@ async def filter_messages(message: types.Message):
     elif "расписание" in message.text.lower():
         await message.answer('https://school.mos.ru/')
     else:
-        answer = ' '.join([random.choice(russian) for i in range(random.randint(2,5))]).capitalize()+'!'
-        #print(answer)
+        answer = ' '.join([random.choice(adjectives), random.choice(nouns), random.choice(verbs)]).capitalize()+'!'
+
 
         await message.answer(answer)
-        #await message.delete()
-    #elif message.from_user.id == 622603789: #это ID Аресенийтак
-        #await message.answer(message.from_user.first_name)
     if not(message.from_user.id in users.keys()):
-        users[message.from_user.id] = [message.from_user.first_name, time.time(), message.chat.id]
-        print(users)
         await message.answer(f'{message.from_user.first_name} - ты с нами')
-    else:
-        users[message.from_user.id][2] = message.chat.id
-        users[message.from_user.id][1] = time.time()
-        print(users)
 
-        #await message.answer(f'{message.from_user.first_name} - лучший')
-    #527995685
+    users[message.from_user.id] = [message.from_user.first_name, time.time(), message.chat.id]
+
 
 async def mess():
     flag = False
     for user in users.keys():
-        #print(users[user][1])
 
         voices = [f'{users[user][0]} - ты куда пропал?', 'Где все???', 'Скучно без вас :(', 'Я тут одна скучаю...']
         if time.time() - users[user][1] < 600:
@@ -114,7 +103,7 @@ async def mess():
 
 
 async def scheduler():
-    aioschedule.every(5).minutes.do(mess)
+    aioschedule.every(10).minutes.do(mess)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
