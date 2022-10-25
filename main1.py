@@ -10,7 +10,7 @@ from aiogram.types import ReplyKeyboardRemove, \
     InlineKeyboardMarkup, InlineKeyboardButton
 
 import keyboards as kb
-from tkn import TOKEN
+from tkn import TOKEN, channel_id
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -18,12 +18,19 @@ dp = Dispatcher(bot)
 greetings = ['Всем привет, меня зовут Женя, я ваша новая подруга', 'Хеллоу, мои друзьяшки!', 'Не сдать вам ЕГЭ на сотку', 'Кто сдает ЕГЭ по информатике?']
 
 users = dict()
-channel_id = -803937955
+
+
+with open('russian.txt', encoding='utf-8') as file:
+    russian = file.read().split()
+
 async def on_startup(_):
     chat_id = channel_id
     asyncio.create_task(scheduler())
     await bot.send_message(chat_id, "Привет, я бот")
 
+async def on_shutdown(_):
+    chat_id = channel_id
+    await bot.send_message(chat_id, "Всем пока, я спать")
 '''
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
@@ -58,7 +65,7 @@ async def filter_messages(message: types.Message):
     if "привет" in message.text.lower():
         await message.answer(random.choice(greetings))
     elif "бот" in message.text.lower():
-        await message.answer('я тут', reply_markup=kb.greet_kb)
+        await message.answer('Привет, я бот\n Мой репозиторий тут https://github.com/dentrunov/aio_bot', reply_markup=kb.greet_kb)
     elif "жека" in message.text.lower():
         await message.answer("хало, как дела, чё как", reply_markup=kb.greet_kb)
     elif "женя" in message.text.lower():
@@ -67,12 +74,20 @@ async def filter_messages(message: types.Message):
         await message.answer("Здравствуйте, как поживаете?", reply_markup=kb.greet_kb)
     elif "помощь" in message.text.lower():
         await message.answer('Ты хочешь об этом поговорить?', reply_markup=kb.yes_kb)
-    elif "да" in message.text.lower():
-        await message.answer(random.choice(greetings))
-    elif "нет" in message.text.lower():
-        await message.answer('Не очень-то и хотелось(', reply_markup=kb.yes_kb)
+    elif message.text.lower() == "ДА!!!":
+        await message.answer(random.choice(greetings), reply_markup=kb.ReplyKeyboardRemove())
+    elif message.text.lower() == "Прости, но нет!":
+        await message.answer('Не очень-то и хотелось(', reply_markup=kb.ReplyKeyboardRemove())
     elif "расписание" in message.text.lower():
         await message.answer('https://school.mos.ru/')
+    else:
+        answer = ' '.join([random.choice(russian) for i in range(random.randint(2,5))]).capitalize()+'!'
+        #print(answer)
+
+        await message.answer(answer)
+        #await message.delete()
+    #elif message.from_user.id == 622603789: #это ID Аресенийтак
+        #await message.answer(message.from_user.first_name)
     if not(message.from_user.id in users.keys()):
         users[message.from_user.id] = [message.from_user.first_name, time.time(), message.chat.id]
         print(users)
@@ -86,15 +101,15 @@ async def filter_messages(message: types.Message):
     #527995685
 
 async def mess():
+    flag = False
     for user in users.keys():
         #print(users[user][1])
-        flag = False
+
         voices = [f'{users[user][0]} - ты куда пропал?', 'Где все???', 'Скучно без вас :(', 'Я тут одна скучаю...']
-        if time.time() - users[user][1] > 300:
-            usr = users[user][2]
-            flag = True
-    if flag:
-        await bot.send_message(usr, random.choice(voices))
+        if time.time() - users[user][1] < 600:
+            await bot.send_message(users[user][2], random.choice(voices))
+            break
+
 
 
 
@@ -108,8 +123,8 @@ async def scheduler():
 async def on_startup(_):
     chat_id = channel_id
     asyncio.create_task(scheduler())
-    await bot.send_message(chat_id, "Привет, я бот")
+    await bot.send_message(chat_id, "Привет, я бот\n Мой репозиторий тут https://github.com/dentrunov/aio_bot")
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=on_shutdown)
